@@ -1,0 +1,18 @@
+group 'gopiandcode-lcs'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.jfree', name: 'jfreechart', version: '1.0.19'
+    compile 'com.google.guava:guava:23.6-jre'
+    compile group: 'org.anarres.graphviz', name: 'graphviz-builder', version: '1.0.2'
+}

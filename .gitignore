@@ -1,0 +1,7 @@
+examples/
+out/
+.idea/
+.gradle/
+build/
+*.png
+
