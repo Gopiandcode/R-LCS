@@ -37,7 +37,6 @@ public class RCSGraphGenerator {
         List<RCSClassifier> population = classifier.getPopulation();
         int i = 0;
         for (RCSClassifier rcsClassifier : population) {
-            System.out.println("Generating Graph - " + (100.0 * ((double) i++ / (double) population.size())) + "% complete");
             if (rcsClassifier.getOutput().isLeft()) {
                 graph.node(scope, rcsClassifier).label(rcsClassifier.toString());
             } else {
@@ -65,9 +64,5 @@ public class RCSGraphGenerator {
        }
        System.out.println("Completed graph: ");
         return graph;
-    }
-
-    public static void main(String[] args) {
-
     }
 }
