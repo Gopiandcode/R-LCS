@@ -28,24 +28,24 @@ public class Main {
         rcs.setN(10000);
     }
     public static void main(String[] args) throws FileNotFoundException {
-        RCSBinaryClassifier rcs = new RCSBinaryClassifier(5, 8);
+        RCSBinaryClassifier rcs = new RCSBinaryClassifier(5, 22);
         configureXCSParamters(rcs);
 
-        CSVRCSTrainingLogger testlogger = new CSVRCSTrainingLogger("rcsBasicData6.csv");
-        GraphingLogger logger = new AccuracyGraphingLogger("XCS Train Accuracy");
+        CSVRCSTrainingLogger testlogger = new CSVRCSTrainingLogger("rcsBasicData20.csv");
+        GraphingLogger logger = new AccuracyGraphingLogger("final constrained XCS Train Accuracy");
 
 
-        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData6.txt");
-        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData6.txt");
+        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData20.txt");
+        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData20.txt");
         RCSBinaryClassifierTestRunner runner = new RCSBinaryClassifierTestRunner(trainDataset, testDataset, rcs);
 
-        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 10);
-        runner.setTestLogger(testlogger, 10, 1000);
+        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 100);
+        runner.setTestLogger(testlogger, 1000, 100);
 
 
         runner.setShouldReset(true);
-        configureGraphParams(1000);
-        runner.runTrainIterations(1000);
+        configureGraphParams(50000);
+        runner.runTrainIterations(50000);
 
 
         System.out.println("Final Accuracy: " + runner.runTestIterations(1000));
