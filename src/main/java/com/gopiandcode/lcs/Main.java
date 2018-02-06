@@ -22,26 +22,28 @@ public class Main {
     static void configureXCSParamters(XCSBinaryClassifier xcs) {
        xcs.setP_explr(0.01);
        xcs.setGamma(0.1);
-       xcs.setDelta(0.05);
+        xcs.setMew(0.05);
+        xcs.setN(10000);
     }
     public static void main(String[] args) throws FileNotFoundException {
         XCSBinaryClassifier xcs = new XCSBinaryClassifier();
         configureXCSParamters(xcs);
 
-        CSVTrainingLogger testlogger = new CSVTrainingLogger("testData6.csv");
+        CSVTrainingLogger testlogger = new CSVTrainingLogger("testData20.csv");
         GraphingLogger logger = new AccuracyGraphingLogger("XCS Train Accuracy");
 
 
-        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData6.txt");
-        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData6.txt");
+        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData20.txt");
+        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData20.txt");
         SimpleBinaryClassifierTestRunner runner = new SimpleBinaryClassifierTestRunner(trainDataset, testDataset, xcs);
 
-        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 10);
-        runner.setTestLogger(testlogger, 10, 1000);
+        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 1000);
+        runner.setTestLogger(testlogger, 1000, 1000);
+
 
         runner.setShouldReset(true);
-        configureGraphParams(1000);
-        runner.runTrainIterations(1000);
+        configureGraphParams(100000);
+        runner.runTrainIterations(100000);
 
 
         System.out.println("Final Accuracy: " + runner.runTestIterations(1000));
