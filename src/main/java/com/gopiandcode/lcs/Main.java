@@ -2,6 +2,8 @@ package com.gopiandcode.lcs;
 
 import com.gopiandcode.lcs.dataset.BinaryClassifierDataset;
 import com.gopiandcode.lcs.dataset.LocalBinaryClassifierDataset;
+import com.gopiandcode.lcs.logging.RCSClassifierTrainingLogger;
+import com.gopiandcode.lcs.logging.csv.CSVRCSTrainingLogger;
 import com.gopiandcode.lcs.logging.csv.CSVTrainingLogger;
 import com.gopiandcode.lcs.logging.graphing.*;
 import com.gopiandcode.lcs.rcs.RCSBinaryClassifier;
@@ -19,31 +21,31 @@ public class Main {
         LoggableDataType.ACCURACY.setRangeAxis(axis);
     }
 
-    static void configureXCSParamters(XCSBinaryClassifier xcs) {
-       xcs.setP_explr(0.01);
-       xcs.setGamma(0.1);
-        xcs.setMew(0.05);
-        xcs.setN(10000);
+    static void configureXCSParamters(RCSBinaryClassifier rcs) {
+       rcs.setP_explr(0.01);
+       rcs.setGamma(0.1);
+        rcs.setMew(0.05);
+        rcs.setN(10000);
     }
     public static void main(String[] args) throws FileNotFoundException {
-        XCSBinaryClassifier xcs = new XCSBinaryClassifier();
-        configureXCSParamters(xcs);
+        RCSBinaryClassifier rcs = new RCSBinaryClassifier(5, 8);
+        configureXCSParamters(rcs);
 
-        CSVTrainingLogger testlogger = new CSVTrainingLogger("testData20.csv");
+        CSVRCSTrainingLogger testlogger = new CSVRCSTrainingLogger("rcsBasicData6.csv");
         GraphingLogger logger = new AccuracyGraphingLogger("XCS Train Accuracy");
 
 
-        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData20.txt");
-        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData20.txt");
-        SimpleBinaryClassifierTestRunner runner = new SimpleBinaryClassifierTestRunner(trainDataset, testDataset, xcs);
+        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData6.txt");
+        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData6.txt");
+        RCSBinaryClassifierTestRunner runner = new RCSBinaryClassifierTestRunner(trainDataset, testDataset, rcs);
 
-        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 1000);
-        runner.setTestLogger(testlogger, 1000, 1000);
+        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 10);
+        runner.setTestLogger(testlogger, 10, 1000);
 
 
         runner.setShouldReset(true);
-        configureGraphParams(100000);
-        runner.runTrainIterations(100000);
+        configureGraphParams(1000);
+        runner.runTrainIterations(1000);
 
 
         System.out.println("Final Accuracy: " + runner.runTestIterations(1000));

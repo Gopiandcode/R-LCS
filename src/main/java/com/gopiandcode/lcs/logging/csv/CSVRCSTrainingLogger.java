@@ -79,4 +79,6 @@ public class CSVRCSTrainingLogger implements RCSClassifierTrainingLogger {
         }
         currentOutputClassifierCount = Optional.of(intermediateClassifierCount);
     }
+
+
 }

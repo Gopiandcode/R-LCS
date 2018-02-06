@@ -2,6 +2,7 @@ package com.gopiandcode.lcs;
 
 import com.gopiandcode.lcs.dataset.BinaryClassifierDataset;
 import com.gopiandcode.lcs.dataset.BinaryClassifierTestData;
+import com.gopiandcode.lcs.logging.ClassifierTrainingLogger;
 import com.gopiandcode.lcs.logging.RCSClassifierTrainingLogger;
 import com.gopiandcode.lcs.logging.graphing.GraphingLogger;
 import com.gopiandcode.lcs.logging.graphing.LoggableDataType;
@@ -16,6 +17,10 @@ public class RCSBinaryClassifierTestRunner implements BinaryClassifierTestRunner
 
     private Optional<RCSClassifierTrainingLogger> logger = Optional.empty();
     private Optional<Integer> loggingFrequency = Optional.empty();
+    private Optional<Integer> testLoggingFrequency = Optional.empty();
+    private Optional<Integer> testLoggingSampleSize = Optional.empty();
+    private Optional<RCSClassifierTrainingLogger> testLogger = Optional.empty();
+
     private int trainIterationCount = 0;
     private int testIterationCount = 0;
     private boolean shouldReset = false;
@@ -30,6 +35,13 @@ public class RCSBinaryClassifierTestRunner implements BinaryClassifierTestRunner
         this.logger = Optional.of(logger);
         this.loggingFrequency = Optional.of(loggingFrequency);
     }
+
+    public void setTestLogger(RCSClassifierTrainingLogger logger, int loggingFrequency, int logSampleSize) {
+        this.setTestLogger(logger);
+        this.setTestLoggingFrequency(loggingFrequency);
+        this.setTestLoggingSampleSize(logSampleSize);
+    }
+
 
     @Override
     public void runTrainIterations(int count) {
@@ -61,6 +73,19 @@ public class RCSBinaryClassifierTestRunner implements BinaryClassifierTestRunner
                     correctStart = i;
                 }
             }
+
+            if (testLoggingFrequency.isPresent() && testLogger.isPresent() && testLoggingSampleSize.isPresent()) {
+                if (i != 0 && (i % testLoggingFrequency.get()) == 0) {
+                    double ratioCorrect = runTestIterations(testLoggingSampleSize.get());
+                    testLogger.get().logAccuracyAtIteration(i, ratioCorrect * 100);
+                    testLogger.get().logPopulationSizeAtIteration(i, classifier.getPopulationSize());
+                    testLogger.get().logIntermediateClassifierCountAtIteration(i, classifier.getIntermediateClassifierCount());
+                    testLogger.get().logOutputClassifierCountAtIteration(i, classifier.getOutputClassifierCount());
+                    System.out.println("[" + i + "]: Test Accuracy over " + testLoggingFrequency.get() + " is " + ratioCorrect * 100 + "%");
+                }
+            }
+
+
             i++;
         }
     }
@@ -92,5 +117,18 @@ public class RCSBinaryClassifierTestRunner implements BinaryClassifierTestRunner
     @Override
     public void setShouldReset(boolean shouldReset) {
         this.shouldReset = shouldReset;
+    }
+
+
+    private void setTestLogger(RCSClassifierTrainingLogger testLogger) {
+        this.testLogger = Optional.of(testLogger);
+    }
+
+    private void setTestLoggingSampleSize(int testLoggingSampleSize) {
+        this.testLoggingSampleSize = Optional.of(testLoggingSampleSize);
+    }
+
+    private void setTestLoggingFrequency(int testLoggingFrequency) {
+        this.testLoggingFrequency = Optional.of(testLoggingFrequency);
     }
 }
