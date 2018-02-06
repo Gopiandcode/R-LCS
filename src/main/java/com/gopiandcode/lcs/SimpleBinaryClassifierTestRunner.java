@@ -2,8 +2,9 @@ package com.gopiandcode.lcs;
 
 import com.gopiandcode.lcs.dataset.BinaryClassifierDataset;
 import com.gopiandcode.lcs.dataset.BinaryClassifierTestData;
-import com.gopiandcode.lcs.graphing.GraphingLogger;
-import com.gopiandcode.lcs.graphing.LoggableDataType;
+import com.gopiandcode.lcs.logging.ClassifierTrainingLogger;
+import com.gopiandcode.lcs.logging.graphing.GraphingLogger;
+import com.gopiandcode.lcs.logging.graphing.LoggableDataType;
 import com.gopiandcode.lcs.problem.BinaryClassifier;
 
 import java.util.Optional;
@@ -13,7 +14,7 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
     private final BinaryClassifierDataset trainDataset;
     private final BinaryClassifier classifier;
 
-    private Optional<GraphingLogger> logger = Optional.empty();
+    private Optional<ClassifierTrainingLogger> logger = Optional.empty();
     private Optional<Integer> loggingFrequency = Optional.empty();
     private int trainIterationCount = 0;
     private int testIterationCount = 0;
@@ -25,8 +26,7 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
         this.classifier = classifier;
     }
 
-    @Override
-    public void setLogger(GraphingLogger logger, int loggingFrequency) {
+    public void setLogger(ClassifierTrainingLogger logger, int loggingFrequency) {
         this.logger = Optional.of(logger);
         this.loggingFrequency = Optional.of(loggingFrequency);
     }
@@ -52,7 +52,8 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
             if(loggingFrequency.isPresent() && logger.isPresent()) {
                 if(i != 0 && (i % loggingFrequency.get()) == 0) {
                   double ratioCorrect = (double)correctlyPredicted/(i - correctStart);
-                  logger.get().recordValueAtIteration(LoggableDataType.ACCURACY, ratioCorrect * 100, i);
+                  logger.get().logAccuracyAtIteration( i, ratioCorrect * 100);
+                  logger.get().logPopulationSizeAtIteration(i, classifier.getPopulationSize());
                     System.out.println("[" + i + "]: Accuracy over " + loggingFrequency.get() + " is " + ratioCorrect * 100 + "%" );
                   correctlyPredicted = 0;
                   correctStart = i;

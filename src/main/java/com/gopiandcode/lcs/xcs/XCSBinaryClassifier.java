@@ -333,7 +333,7 @@ public class XCSBinaryClassifier implements BinaryClassifier {
         return totalFitness / populationSize;
     }
 
-    private long getPopulationSize() {
+    public long getPopulationSize() {
         long size = 0;
         for (XCSClassifier cl : this.P) {
             size += cl.getN();

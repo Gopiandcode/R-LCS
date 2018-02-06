@@ -1,12 +1,9 @@
 package com.gopiandcode.lcs;
 
-import com.gopiandcode.lcs.graphing.GraphingLogger;
+import com.gopiandcode.lcs.logging.ClassifierTrainingLogger;
+import com.gopiandcode.lcs.logging.graphing.GraphingLogger;
 
-/**
- * Created by Gopiandcode on 10/01/2018.
- */
 public interface BinaryClassifierTestRunner {
-    void setLogger(GraphingLogger logger, int loggingFrequency);
 
     void runTrainIterations(int count);
 

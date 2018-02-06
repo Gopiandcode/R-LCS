@@ -596,8 +596,8 @@ public class RCSBinaryClassifier implements BinaryClassifier {
         return this.selectActionUsing(PA);
     }
 
-    public Double getPopulationSize() {
-        return this.P.stream().map(RCSClassifier::getN).reduce(Double::sum).orElse(0.0);
+    public long getPopulationSize() {
+        return this.P.stream().map(RCSClassifier::getN).reduce(Double::sum).orElse(0.0).longValue();
     }
 
     public double getOutputClassifierCount() {

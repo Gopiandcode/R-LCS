@@ -6,4 +6,6 @@ public interface BinaryClassifier {
     boolean runSingleTrainIteration(BinaryClassifierTestData data);
 
     Action classify(Situation sigma);
+
+    long getPopulationSize();
 }
