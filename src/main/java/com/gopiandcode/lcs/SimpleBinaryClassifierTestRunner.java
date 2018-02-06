@@ -16,6 +16,9 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
 
     private Optional<ClassifierTrainingLogger> logger = Optional.empty();
     private Optional<Integer> loggingFrequency = Optional.empty();
+    private Optional<Integer> testLoggingFrequency = Optional.empty();
+    private Optional<Integer> testLoggingSampleSize = Optional.empty();
+    private Optional<ClassifierTrainingLogger> testLogger = Optional.empty();
     private int trainIterationCount = 0;
     private int testIterationCount = 0;
     private boolean shouldReset = false;
@@ -31,6 +34,12 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
         this.loggingFrequency = Optional.of(loggingFrequency);
     }
 
+    public void setTestLogger(ClassifierTrainingLogger logger, int loggingFrequency, int logSampleSize) {
+        this.setTestLogger(logger);
+        this.setTestLoggingFrequency(loggingFrequency);
+        this.setTestLoggingSampleSize(logSampleSize);
+    }
+
     @Override
     public void runTrainIterations(int count) {
 
@@ -44,6 +53,7 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
                 else
                     break;
             }
+
             BinaryClassifierTestData binaryClassifierTestData = trainDataset.nextDataPoint();
             boolean predictedCorrectly = classifier.runSingleTrainIteration(binaryClassifierTestData);
             if(predictedCorrectly) {
@@ -54,11 +64,23 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
                   double ratioCorrect = (double)correctlyPredicted/(i - correctStart);
                   logger.get().logAccuracyAtIteration( i, ratioCorrect * 100);
                   logger.get().logPopulationSizeAtIteration(i, classifier.getPopulationSize());
-                    System.out.println("[" + i + "]: Accuracy over " + loggingFrequency.get() + " is " + ratioCorrect * 100 + "%" );
+                    System.out.println("[" + i + "]: Train Accuracy over " + loggingFrequency.get() + " is " + ratioCorrect * 100 + "%" );
                   correctlyPredicted = 0;
                   correctStart = i;
                 }
             }
+
+              if(testLoggingFrequency.isPresent() && testLogger.isPresent() && testLoggingSampleSize.isPresent()) {
+                if(i != 0 && (i % testLoggingFrequency.get()) == 0) {
+                  double ratioCorrect = runTestIterations(testLoggingSampleSize.get());
+                  testLogger.get().logAccuracyAtIteration( i, ratioCorrect * 100);
+                  testLogger.get().logPopulationSizeAtIteration(i, classifier.getPopulationSize());
+                    System.out.println("[" + i + "]: Test Accuracy over " + testLoggingFrequency.get() + " is " + ratioCorrect * 100 + "%" );
+                }
+            }
+
+
+
             i++;
         }
     }
@@ -82,6 +104,8 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
                 correctlyPredicted++;
             }
 
+
+
             i++;
        }
         return (double)correctlyPredicted/(double)count;
@@ -90,5 +114,18 @@ public class SimpleBinaryClassifierTestRunner implements BinaryClassifierTestRun
     @Override
     public void setShouldReset(boolean shouldReset) {
         this.shouldReset = shouldReset;
+    }
+
+
+    private void setTestLogger(ClassifierTrainingLogger testLogger) {
+        this.testLogger = Optional.of(testLogger);
+    }
+
+    private void setTestLoggingSampleSize(int testLoggingSampleSize) {
+        this.testLoggingSampleSize = Optional.of(testLoggingSampleSize);
+    }
+
+    private void setTestLoggingFrequency(int testLoggingFrequency) {
+        this.testLoggingFrequency = Optional.of(testLoggingFrequency);
     }
 }
