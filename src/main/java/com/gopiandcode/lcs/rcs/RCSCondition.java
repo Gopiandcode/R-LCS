@@ -139,8 +139,12 @@ public class RCSCondition {
      public boolean matches(Situation situation) {
         BinaryAlphabet[] situationValues = situation.getValues();
         if (situationValues.length > this.values.length) {
-            throw new RuntimeException("Situation is longer than RCS condition");
+//            throw new RuntimeException("Situation is longer than RCS condition");
+            return false;
         }
+
+        if(situationValues.length != this.values.length) return false;
+
         for (int i = 0; i < situationValues.length; i++) {
             TernaryAlphabet value = this.values[i];
             if (value != TernaryAlphabet.HASH) {

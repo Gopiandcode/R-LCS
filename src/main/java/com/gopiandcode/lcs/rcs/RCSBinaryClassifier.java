@@ -47,9 +47,9 @@ class RCSClassifierOutput {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(outputClassifier.toString());
-        for(RCSClassifier classifier : intermediateClassifiers) {
-           sb.append(" <- ");
-           sb.append(classifier.toString());
+        for (RCSClassifier classifier : intermediateClassifiers) {
+            sb.append(" <- ");
+            sb.append(classifier.toString());
         }
         return sb.toString();
     }
@@ -294,6 +294,7 @@ public class RCSBinaryClassifier implements BinaryClassifier {
 
     private List<RCSClassifier> selectOffspring() {
         // TODO : SELECT OFFSPRING in [A]
+
         final double[] fitnessSum = {0.0};
         for (RCSClassifierOutput output : A) {
             output.forEach(cl -> fitnessSum[0] += cl.getF());
@@ -337,17 +338,24 @@ public class RCSBinaryClassifier implements BinaryClassifier {
             final double[] intermediateFitnessSum = {0.0};
             for (RCSClassifierOutput output : A) {
                 output.forEach(cl -> {
-                    if (!cl.getOutput().isLeft())
+                    if (!cl.getOutput().isLeft()
+                        && cl.getCondition().getValues().length == child1[0].getCondition().getValues().length
+                        && cl.getOutput().right().getValues().length == child1[0].getOutput().right().getValues().length)
                         intermediateFitnessSum[0] += cl.getF();
                 });
             }
+
+            if (intermediateFitnessSum[0] == 0.0) return selectOffspring();
+
             double intermediateChoicePoint = ThreadLocalRandom.current().nextDouble() * intermediateFitnessSum[0];
 
             intermediateFitnessSum[0] = 0.0;
             final RCSClassifier[] child2 = {null};
             for (RCSClassifierOutput output : A) {
                 output.forEach(cl -> {
-                    if (!cl.getOutput().isLeft()) {
+                    if (!cl.getOutput().isLeft()
+                        && cl.getCondition().getValues().length == child1[0].getCondition().getValues().length
+                        && cl.getOutput().right().getValues().length == child1[0].getOutput().right().getValues().length) {
                         intermediateFitnessSum[0] += cl.getF();
                         if (child2[0] == null && intermediateFitnessSum[0] > intermediateChoicePoint) {
                             child2[0] = cl;
@@ -356,7 +364,7 @@ public class RCSBinaryClassifier implements BinaryClassifier {
                 });
                 if (child2[0] != null) break;
             }
-            if(child2[0] != null) {
+            if (child2[0] != null) {
                 return ImmutableList.of(child1[0], child2[0]);
             }
 
@@ -379,33 +387,39 @@ public class RCSBinaryClassifier implements BinaryClassifier {
         for (RCSClassifierOutput clSeq : this.A) {
             clSeq.incrementExp();
 
+            final double[] beta = {this.beta};
+            final double[] p1 = {p};
+            final long[] actionSetSize1 = {actionSetSize};
             clSeq.forEach(cl -> {
-                if (cl.getExp() < 1 / this.beta) {
+                if (cl.getExp() < 1 / beta[0]) {
                     // if cl.exp < 1/beta
-                    cl.setP(cl.getP() + (p - cl.getP()) / cl.getExp());
+                    cl.setP(cl.getP() + (p1[0] - cl.getP()) / cl.getExp());
                     // cp.p <- cp.p + (P - cl.p) / cl.exp
                 } else {
-                    cl.setP(cl.getP() + this.beta * (p - cl.getP()));
+                    cl.setP(cl.getP() + beta[0] * (p1[0] - cl.getP()));
                     //cl.p <- cl.p + beta * (P - cl.p)
                 }
 
-                if (cl.getExp() < 1 / this.beta) {
+                if (cl.getExp() < 1 / beta[0]) {
                     // if cl.exp < 1/beta
-                    cl.setE(cl.getE() + (Math.abs(p - cl.getP()) - cl.getE()) / cl.getExp());
+                    cl.setE(cl.getE() + (Math.abs(p1[0] - cl.getP()) - cl.getE()) / cl.getExp());
                     // cl.e <- cl.e + (|P - cl.p| - cl.e)/cl.exp
                 } else {
-                    cl.setE(cl.getE() + this.beta * (Math.abs(p - cl.getP()) - cl.getE()));
+                    cl.setE(cl.getE() + beta[0] * (Math.abs(p1[0] - cl.getP()) - cl.getE()));
                     // cl.e <- cl.e + this.beta * (|P - cl.p| - cl.e)
                 }
 
-                if (cl.getExp() < 1 / this.beta) {
-                    cl.setAs(cl.getAs() + (actionSetSize - cl.getAs()) / cl.getExp());
+                if (cl.getExp() < 1 / beta[0]) {
+                    cl.setAs(cl.getAs() + (actionSetSize1[0] - cl.getAs()) / cl.getExp());
                     // cl.as <- cl.as + (sum c.n for c in [A] - cl.as)/cl.exp
                 } else {
-                    cl.setAs(cl.getAs() + this.beta * (actionSetSize - cl.getAs()));
+                    cl.setAs(cl.getAs() + beta[0] * (actionSetSize1[0] - cl.getAs()));
                     // cl.as <- cl.as + beta * (sum c.n for c in [a] - cl.as)
                 }
 
+//                beta[0] *= 1.1;
+//                actionSetSize1[0] *= 0.9;
+//                p1[0] *= 0.9;
             });
         }
 
@@ -476,8 +490,8 @@ public class RCSBinaryClassifier implements BinaryClassifier {
 
     private void deleteFromPopulation() {
         Double populationSize = this.P.stream().map(RCSClassifier::getN).reduce(Double::sum).orElse(0.0);
-        if(populationSize <= this.N) return;
-        Double averagePopulationFitness = this.P.stream().map(RCSClassifier::getF).reduce(Double::sum).orElse(0.0)/populationSize;
+        if (populationSize <= this.N) return;
+        Double averagePopulationFitness = this.P.stream().map(RCSClassifier::getF).reduce(Double::sum).orElse(0.0) / populationSize;
         double votesum = 0.0;
         for (RCSClassifier cl : this.P) {
             double deletionVoteFor = this.getDeletionVoteFor(cl, averagePopulationFitness);
@@ -520,8 +534,10 @@ public class RCSBinaryClassifier implements BinaryClassifier {
     private RCSClassifier generateCoveringClassifier(Set<BinaryAlphabet> actions, Situation sigma) {
         Situation situation = this.selectIntermediateSituationFromMatchSet();
         RCSClassifier classifier;
-        if(ThreadLocalRandom.current().nextDouble() < 0.5) {
+        if (ThreadLocalRandom.current().nextDouble() < 0.3) {
             classifier = RCSClassifier.coverSituation(situation, this.selectUnseenAction(actions), this.intermediateSituationSize, this.P_sharp);
+        } else if (ThreadLocalRandom.current().nextDouble() < 0.6) {
+            classifier = RCSClassifier.coverSituation(sigma, situation, sigma.getValues().length, this.P_sharp);
         } else {
             classifier = RCSClassifier.coverSituation(sigma, situation, this.intermediateSituationSize, this.P_sharp);
         }
@@ -541,11 +557,11 @@ public class RCSBinaryClassifier implements BinaryClassifier {
     private Situation selectIntermediateSituationFromMatchSet() {
         if (!this.M.isEmpty()) {
             int i = ThreadLocalRandom.current().nextInt(0, this.M.size());
-            if(!this.M.get(i).getIntermediateClassifiers().isEmpty()) {
+            if (!this.M.get(i).getIntermediateClassifiers().isEmpty()) {
                 int j = ThreadLocalRandom.current().nextInt(0, this.M.get(i).getIntermediateClassifiers().size());
                 return RCSClassifier.GenerateMatching(this.M.get(i).getIntermediateClassifiers().get(j));
             } else {
-               return RCSClassifier.GenerateMatching(this.M.get(i).GetFinalClassifier());
+                return RCSClassifier.GenerateMatching(this.M.get(i).GetFinalClassifier());
             }
         }
         if (!this.P.isEmpty()) {

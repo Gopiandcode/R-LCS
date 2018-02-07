@@ -23,35 +23,40 @@ public class Main {
 
     static void configureXCSParamters(RCSBinaryClassifier rcs) {
        rcs.setP_explr(0.01);
-       rcs.setGamma(0.1);
+//       rcs.setRewardForCorrectClassification(100);
         rcs.setMew(0.05);
-        rcs.setN(10000);
+        rcs.setN(100);
+//        rcs.setTheta_mna(1.0);
+        rcs.setX(0.1);
     }
     public static void main(String[] args) throws FileNotFoundException {
-        RCSBinaryClassifier rcs = new RCSBinaryClassifier(5, 22);
+        RCSBinaryClassifier rcs = new RCSBinaryClassifier(3, 8);
         configureXCSParamters(rcs);
 
-        CSVRCSTrainingLogger testlogger = new CSVRCSTrainingLogger("rcsBasicData20.csv");
+        GraphingLogger testlogger = new AccuracyGraphingLogger("XCS Test Accuracy");
+//        CSVRCSTrainingLogger testlogger = new CSVRCSTrainingLogger("rcsBasicData20.csv");
         GraphingLogger logger = new AccuracyGraphingLogger("final constrained XCS Train Accuracy");
 
 
-        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData20.txt");
-        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData20.txt");
+        BinaryClassifierDataset testDataset = LocalBinaryClassifierDataset.loadFromFile("testData6.txt");
+        BinaryClassifierDataset trainDataset = LocalBinaryClassifierDataset.loadFromFile("trainData6.txt");
         RCSBinaryClassifierTestRunner runner = new RCSBinaryClassifierTestRunner(trainDataset, testDataset, rcs);
 
-        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 100);
-        runner.setTestLogger(testlogger, 1000, 100);
+        runner.setLogger(new ClassifierTrainingLoggerAdapter(logger), 1000);
+//        runner.setTestLogger(testlogger, 1000, 100);
+        runner.setTestLogger(new ClassifierTrainingLoggerAdapter(testlogger), 10000, 1000);
 
 
         runner.setShouldReset(true);
-        configureGraphParams(50000);
-        runner.runTrainIterations(50000);
+        configureGraphParams(100000);
+        runner.runTrainIterations(100000);
 
 
         System.out.println("Final Accuracy: " + runner.runTestIterations(1000));
         new GraphRenderer(logger, 1080, 720, 1720);
+        new GraphRenderer(testlogger, 1080, 720, 1720);
 
-        testlogger.close();
+//        testlogger.close();
     }
 
 }
